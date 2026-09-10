@@ -25,49 +25,38 @@ const Sync = {
       if (data) {
         const localProfile = getProfile();
         
-        // Merge profile metrics (take cloud if exists, or combine XP)
-        localProfile.level = data.level || localProfile.level || 'A1';
-        localProfile.xp = Math.max(data.xp || 0, localProfile.xp || 0);
-        localProfile.streak = Math.max(data.streak || 0, localProfile.streak || 0);
-        localProfile.lastStudyDate = data.last_study_date || localProfile.lastStudyDate;
-        
-        if (Array.isArray(data.badges) && data.badges.length > 0) {
-          const badgeSet = new Set([...localProfile.badges, ...data.badges]);
-          localProfile.badges = Array.from(badgeSet);
-        }
+        // Take cloud data directly - do NOT inherit stale local guest progress
+        localProfile.level = data.level || 'A1';
+        localProfile.xp = Number.isInteger(data.xp) ? data.xp : 0;
+        localProfile.streak = Number.isInteger(data.streak) ? data.streak : 0;
+        localProfile.lastStudyDate = data.last_study_date || null;
+        localProfile.badges = Array.isArray(data.badges) ? data.badges : [];
         saveProfile(localProfile);
 
-        // Merge skill progress
-        const localSP = getSkillProgress();
-        if (data.completed_lessons) {
-          const cl = data.completed_lessons;
-          ['reading', 'listening', 'grammar', 'writing', 'shadowing', 'speaking'].forEach(skill => {
-            if (Array.isArray(cl[skill])) {
-              const existing = new Set(localSP[skill]?.completed || []);
-              cl[skill].forEach(id => existing.add(id));
-              if (!localSP[skill]) localSP[skill] = { completed: [] };
-              localSP[skill].completed = Array.from(existing);
-            }
-          });
-        }
+        // Skill progress
+        const cl = data.completed_lessons || {};
+        const vp = data.vocabulary_progress || {};
+        const localSP = {
+          reading: { completed: cl.reading || [], scores: [], totalScore: 0, attempts: 0 },
+          writing: { completed: cl.writing || [], drafts: [] },
+          listening: { completed: cl.listening || [], scores: [], totalScore: 0, attempts: 0 },
+          speaking: { completed: cl.speaking || [], scores: [], totalScore: 0, attempts: 0 },
+          shadowing: { completed: cl.shadowing || [], scores: [], totalScore: 0, attempts: 0 },
+          vocabulary: { 
+            learned: vp.learned || [], 
+            reviewing: vp.reviewing || [], 
+            mastered: vp.mastered || [], 
+            lastSeen: {} 
+          },
+          grammar: { completed: cl.grammar || [], scores: [], totalScore: 0, attempts: 0 },
+        };
         saveSkillProgress(localSP);
 
-        // Merge SRS Data
-        if (data.vocabulary_progress?.srsData) {
-          const localSRS = getSRSData();
-          const mergedSRS = { ...localSRS, ...data.vocabulary_progress.srsData };
-          saveSRSData(mergedSRS);
-        }
+        // SRS Data
+        saveSRSData(vp.srsData || {});
 
-        // Merge Quiz Scores
-        if (Array.isArray(data.quiz_scores)) {
-          const localQuizzes = Storage.get('quizScores', []);
-          const existingIds = new Set(localQuizzes.map(q => q.id));
-          data.quiz_scores.forEach(q => {
-            if (!existingIds.has(q.id)) localQuizzes.push(q);
-          });
-          Storage.set('quizScores', localQuizzes);
-        }
+        // Quiz Scores
+        Storage.set('quizScores', Array.isArray(data.quiz_scores) ? data.quiz_scores : []);
 
         // Update UI
         if (typeof updateSidebar === 'function') updateSidebar();
@@ -77,12 +66,71 @@ const Sync = {
         this.lastSyncTime = new Date();
         this.updateSyncBadge('synced');
       } else {
-        // First time cloud user, push local progress to cloud
+        // First time cloud user, start completely clean with 0 XP
+        const localProfile = getProfile();
+        localProfile.level = 'A1';
+        localProfile.xp = 0;
+        localProfile.streak = 0;
+        localProfile.lastStudyDate = null;
+        localProfile.badges = [];
+        saveProfile(localProfile);
+
+        const cleanSP = {
+          reading: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+          writing: { completed: [], drafts: [] },
+          listening: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+          speaking: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+          shadowing: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+          vocabulary: { learned: [], reviewing: [], mastered: [], lastSeen: {} },
+          grammar: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+        };
+        saveSkillProgress(cleanSP);
+        saveSRSData({});
+        Storage.set('quizScores', []);
+        Storage.set('activityLog', []);
+
         await this.syncToCloud(true);
       }
     } catch (e) {
       console.error('Error in loadFromCloud:', e);
     }
+  },
+
+  // Reset entire progress to 0 XP and fresh slate
+  async resetProgressToZero() {
+    if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ điểm, từ vựng và đưa tiến độ về 0 XP?')) return;
+    
+    const p = getProfile();
+    p.level = 'A1';
+    p.xp = 0;
+    p.streak = 0;
+    p.lastStudyDate = null;
+    p.badges = [];
+    saveProfile(p);
+
+    const cleanSP = {
+      reading: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+      writing: { completed: [], drafts: [] },
+      listening: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+      speaking: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+      shadowing: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+      vocabulary: { learned: [], reviewing: [], mastered: [], lastSeen: {} },
+      grammar: { completed: [], scores: [], totalScore: 0, attempts: 0 },
+    };
+    saveSkillProgress(cleanSP);
+    saveSRSData({});
+    Storage.set('quizScores', []);
+    Storage.set('activityLog', []);
+
+    if (Auth.user && window.supabaseClient) {
+      await this.syncToCloud(true);
+    }
+
+    if (typeof updateSidebar === 'function') updateSidebar();
+    const activePage = location.hash.replace('#','') || 'dashboard';
+    if (typeof initPage === 'function') initPage(activePage);
+
+    showToast('Đã đặt lại tiến độ về 0 XP và Level A1!', 'info', '🔄');
   },
 
   // Schedule auto sync with debounce (1.5s)
