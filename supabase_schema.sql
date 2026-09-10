@@ -120,8 +120,9 @@ CREATE POLICY "Users can insert own progress"
   ON public.user_progress FOR INSERT
   WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
--- 5. Helper view for Admin Analytics
-CREATE OR REPLACE VIEW public.admin_learners_overview AS
+-- 5. Helper view for Admin Analytics (with security_invoker = true to enforce RLS)
+CREATE OR REPLACE VIEW public.admin_learners_overview 
+WITH (security_invoker = true) AS
 SELECT 
   p.id AS user_id,
   p.email,
