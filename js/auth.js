@@ -191,7 +191,12 @@ const Auth = {
       return;
     }
     try {
-      const redirectUrl = window.location.origin + window.location.pathname;
+      let redirectUrl = window.location.origin;
+      if (!redirectUrl || redirectUrl === 'null' || redirectUrl.startsWith('file:')) {
+        redirectUrl = 'https://english-teal-theta.vercel.app';
+      } else {
+        redirectUrl = redirectUrl + (window.location.pathname || '/');
+      }
       const { error } = await window.supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
