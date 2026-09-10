@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnglishMaster – Learn English A1 to C2</title>
+  <meta name="description" content="Master English from A1 to C2 with 4 skills, shadowing, vocabulary, grammar, and more.">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Automatically purge any stale Service Workers or PWA caches from other projects on localhost
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var r of regs) { r.unregister(); }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        for (var k of keys) { caches.delete(k); }
+      });
+    }
+  </script>
+</head>
+<body>
+
+<!-- Mobile Menu -->
+<button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- Setup Modal -->
+<div id="setup-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div class="card" style="max-width:400px;width:100%;text-align:center;padding:48px 36px;border-color:rgba(124,58,237,0.3);border-radius:28px;">
+    <div style="font-size:64px;margin-bottom:16px;">🎓</div>
+    <h1 style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#A78BFA,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Welcome to EnglishMaster</h1>
+    <p style="color:var(--text-muted);margin-bottom:28px;font-size:14px;line-height:1.6;">Learn English from A1 to C2 — Reading, Writing, Listening, Speaking, Shadowing & more!</p>
+    <input id="setup-name-input" type="text" placeholder="Enter your name..." maxlength="30"
+      style="width:100%;padding:14px 18px;background:var(--bg-3);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;outline:none;margin-bottom:16px;transition:border-color 0.2s;"
+      onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+    <button class="btn btn-primary w-full btn-lg" onclick="setupName()">🚀 Start Learning!</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- App Layout -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">EnglishMaster</div>
+      <div class="logo-sub">Learn · Practice · Master</div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar-letter">L</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-username">Learner</div>
+        <div class="user-level">🏅 <span id="sidebar-level">A1</span> &nbsp;🔥 <span id="sidebar-streak">0</span>d</div>
+      </div>
+    </div>
+
+    <!-- Hearts -->
+    <div class="sidebar-hearts">
+      <span style="font-size:12px;font-weight:600;color:var(--text-dim);">LIVES:</span>
+      <div id="hearts-display">❤️❤️❤️❤️❤️</div>
+      <button onclick="refillHearts()" style="margin-left:auto;font-size:11px;padding:4px 10px;border-radius:50px;background:var(--bg-3);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;">+Refill</button>
+    </div>
+
+    <!-- Combo -->
+    <div id="combo-display" class="combo-display-bar hidden">⚡ Combo · 1x XP</div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span class="nav-icon">🏠</span> Dashboard</button>
+      <button class="nav-item" data-page="roadmap" onclick="navigate('roadmap')"><span class="nav-icon">🗺️</span> CEFR Roadmap</button>
+      <button class="nav-item" data-page="progress" onclick="navigate('progress')"><span class="nav-icon">📊</span> My Progress</button>
+
+      <div class="nav-section-label" style="margin-top:10px;">Practice & AI</div>
+      <button class="nav-item" data-page="ai" onclick="navigate('ai')"><span class="nav-icon">🤖</span> AI Partner</button>
+      <button class="nav-item" data-page="reader" onclick="navigate('reader')"><span class="nav-icon">📖</span> Smart Reader</button>
+      <button class="nav-item" data-page="shadowing" onclick="navigate('shadowing')"><span class="nav-icon">🎙️</span> Shadowing</button>
+      <button class="nav-item" data-page="vocabulary" onclick="navigate('vocabulary')"><span class="nav-icon">📝</span> Vocabulary</button>
+      <button class="nav-item" data-page="grammar" onclick="navigate('grammar')"><span class="nav-icon">🎓</span> Grammar</button>
+
+      <div class="nav-section-label" style="margin-top:10px;">4 Skills</div>
+      <button class="nav-item" data-page="reading" onclick="navigate('reading')"><span class="nav-icon">📚</span> Reading</button>
+      <button class="nav-item" data-page="writing" onclick="navigate('writing')"><span class="nav-icon">✍️</span> Writing</button>
+      <button class="nav-item" data-page="listening" onclick="navigate('listening')"><span class="nav-icon">🎧</span> Listening</button>
+      <button class="nav-item" data-page="speaking" onclick="navigate('speaking')"><span class="nav-icon">🗣️</span> Speaking</button>
+    </nav>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle-bar" onclick="toggleTheme()">
+      <span id="theme-toggle-text">Dark Mode</span>
+      <span id="theme-toggle-icon">🌙</span>
+    </div>
+
+    <div class="sidebar-xp">
+      <div class="xp-label">
+        <span>XP Progress</span>
+        <span style="font-weight:700;color:var(--primary-light);"><span id="sidebar-xp-current">0</span> XP</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" id="sidebar-xp-fill" style="width:0%"></div></div>
+      <div class="xp-next" id="sidebar-xp-next">500 XP to A2</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="page-dashboard">
+      <div class="page-header">
+        <div class="flex-between flex-wrap gap-16">
+          <div>
+            <h1 class="page-title" id="dash-welcome">Hello! 👋</h1>
+            <p class="page-subtitle">Continue your English learning journey</p>
+          </div>
+          <span class="level-badge level-A1" id="dash-level-badge" style="font-size:15px;padding:8px 18px;">A1</span>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-value" id="dash-xp">0</div><div class="stat-label">Total XP</div></div>
+        <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-value" id="dash-streak" style="background:linear-gradient(135deg,#F59E0B,#EF4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div><div class="stat-label">Day Streak</div></div>
+        <div class="stat-card"><div class="stat-icon">🏅</div><div class="stat-value" id="dash-level" style="background:linear-gradient(135deg,#06B6D4,#6366F1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">A1</div><div class="stat-label">Level</div></div>
+        <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value" id="dash-vocab" style="background:linear-gradient(135deg,#10B981,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div><div class="stat-label">Words Mastered</div></div>
+      </div>
+
+      <div class="section-title">📊 Skill Overview</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px;">
+        <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-weight:600;">📖 Reading</span><span style="font-weight:700;color:#6366F1;" id="dash-reading-score">0%</span></div><div class="skill-progress-bar"><div class="skill-progress-fill" id="dash-reading-fill" style="width:0%;background:linear-gradient(90deg,#6366F1,#818CF8)"></div></div></div>
+        <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-weight:600;">🎧 Listening</span><span style="font-weight:700;color:#06B6D4;" id="dash-listening-score">0%</span></div><div class="skill-progress-bar"><div class="skill-progress-fill" id="dash-listening-fill" style="width:0%;background:linear-gradient(90deg,#06B6D4,#67E8F9)"></div></div></div>
+        <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-weight:600;">🗣️ Speaking</span><span style="font-weight:700;color:#F59E0B;" id="dash-speaking-score">0%</span></div><div class="skill-progress-bar"><div class="skill-progress-fill" id="dash-speaking-fill" style="width:0%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div></div></div>
+        <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-weight:600;">🎓 Grammar</span><span style="font-weight:700;color:#10B981;" id="dash-grammar-score">0%</span></div><div class="skill-progress-bar"><div class="skill-progress-fill" id="dash-grammar-fill" style="width:0%;background:linear-gradient(90deg,#10B981,#34D399)"></div></div></div>
+      </div>
+
+      <div class="section-title">🚀 Start Practicing</div>
+      <div class="skill-cards">
+        <div class="skill-card" onclick="navigate('reading')" style="--skill-color:rgba(99,102,241,0.12);--skill-border:rgba(99,102,241,0.4);">
+          <div class="skill-card-icon">📖</div><div class="skill-card-title">Reading</div>
+          <div class="skill-card-desc">Comprehension passages from A1 to C2. Click words to see meanings.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('listening')" style="--skill-color:rgba(6,182,212,0.12);--skill-border:rgba(6,182,212,0.4);">
+          <div class="skill-card-icon">🎧</div><div class="skill-card-title">Listening</div>
+          <div class="skill-card-desc">Audio lessons with comprehension questions. Adjustable playback speed.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('roadmap')" style="--skill-color:rgba(124,58,237,0.18);--skill-border:rgba(124,58,237,0.5);">
+          <div class="skill-card-icon">🗺️</div><div class="skill-card-title">CEFR Roadmap</div>
+          <div class="skill-card-desc">Interactive station pathway from A1 to C2. Master each milestone!</div>
+        </div>
+        <div class="skill-card" onclick="navigate('ai')" style="--skill-color:rgba(6,182,212,0.18);--skill-border:rgba(6,182,212,0.5);">
+          <div class="skill-card-icon">🤖</div><div class="skill-card-title">AI Partner & Song Ngữ</div>
+          <div class="skill-card-desc">Voice chat 2 chiều Anh - Việt, hơn 30+ chủ đề A1 đến C2 và tự tạo kịch bản không giới hạn.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('reader')" style="--skill-color:rgba(236,72,153,0.18);--skill-border:rgba(236,72,153,0.5);">
+          <div class="skill-card-icon">📖</div><div class="skill-card-title">Smart Reader</div>
+          <div class="skill-card-desc">Paste any text. Click words for IPA & definition, and 1-click save to SRS!</div>
+        </div>
+        <div class="skill-card" onclick="navigate('shadowing')" style="--skill-color:rgba(167,139,250,0.12);--skill-border:rgba(167,139,250,0.4);">
+          <div class="skill-card-icon">🎙️</div><div class="skill-card-title">Shadowing</div>
+          <div class="skill-card-desc">Listen to a sentence, then repeat it. Build pronunciation and fluency fast.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('vocabulary')" style="--skill-color:rgba(249,115,22,0.12);--skill-border:rgba(249,115,22,0.4);">
+          <div class="skill-card-icon">📝</div><div class="skill-card-title">Vocabulary (SM-2)</div>
+          <div class="skill-card-desc">Spaced repetition system (Again, Hard, Good, Easy) keeps memory fresh.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('speaking')" style="--skill-color:rgba(245,158,11,0.12);--skill-border:rgba(245,158,11,0.4);">
+          <div class="skill-card-icon">🗣️</div><div class="skill-card-title">Speaking</div>
+          <div class="skill-card-desc">Voice recognition scores your pronunciation on 30+ practice sentences.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('reading')" style="--skill-color:rgba(99,102,241,0.12);--skill-border:rgba(99,102,241,0.4);">
+          <div class="skill-card-icon">📚</div><div class="skill-card-title">Reading</div>
+          <div class="skill-card-desc">Comprehension passages from A1 to C2 with quiz questions.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('listening')" style="--skill-color:rgba(6,182,212,0.12);--skill-border:rgba(6,182,212,0.4);">
+          <div class="skill-card-icon">🎧</div><div class="skill-card-title">Listening</div>
+          <div class="skill-card-desc">Audio lessons with comprehension questions. Adjustable playback speed.</div>
+        </div>
+        <div class="skill-card" onclick="navigate('writing')" style="--skill-color:rgba(16,185,129,0.12);--skill-border:rgba(16,185,129,0.4);">
+          <div class="skill-card-icon">✍️</div><div class="skill-card-title">Writing</div>
+          <div class="skill-card-desc">Structured writing prompts with tips and useful phrases for every level.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CEFR ROADMAP ===== -->
+    <div id="page-roadmap" class="hidden">
+      <div id="roadmap-content"></div>
+    </div>
+
+    <!-- ===== AI PRACTICE PARTNER ===== -->
+    <div id="page-ai" class="hidden"></div>
+
+    <!-- ===== SMART READER ===== -->
+    <div id="page-reader" class="hidden"></div>
+
+    <!-- ===== READING ===== -->
+    <div id="page-reading" class="hidden">
+      <div id="reading-list">
+        <div class="page-header">
+          <h1 class="page-title">📖 Reading</h1>
+          <p class="page-subtitle">Read passages and answer comprehension questions. Click any word to see its meaning!</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+          <label style="font-size:13px;font-weight:600;color:var(--text-muted);">Level:</label>
+          <select id="reading-level-filter" onchange="renderReading()" style="padding:8px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none;cursor:pointer;">
+            <option value="all">All Levels</option>
+            <option value="A1">A1 – Beginner</option>
+            <option value="A2">A2 – Elementary</option>
+            <option value="B1">B1 – Intermediate</option>
+            <option value="B2">B2 – Upper Intermediate</option>
+            <option value="C1">C1 – Advanced</option>
+            <option value="C2">C2 – Mastery</option>
+          </select>
+        </div>
+        <div class="content-list" id="reading-cards"></div>
+      </div>
+      <div id="reading-exercise" class="hidden">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="renderReading()">← Back</button>
+          <span class="level-badge" id="reading-level-badge">A1</span>
+          <h2 id="reading-title" style="font-size:18px;font-weight:700;"></h2>
+        </div>
+        <div class="reading-passage" id="reading-passage"></div>
+        <div class="quiz-container">
+          <div id="reading-q-area">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar-track"><div class="quiz-progress-bar-fill" id="reading-q-progress" style="width:0%"></div></div>
+              <span class="quiz-counter" id="reading-q-counter">Q1/4</span>
+            </div>
+            <div class="question-card">
+              <p class="question-text" id="reading-question-text"></p>
+              <div class="options-grid" id="reading-options"></div>
+              <div id="reading-explanation" class="hidden"></div>
+            </div>
+            <div style="text-align:right;margin-top:16px;">
+              <button class="btn btn-primary hidden" id="reading-next-btn" onclick="readingNext()">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WRITING ===== -->
+    <div id="page-writing" class="hidden">
+      <div id="writing-list">
+        <div class="page-header">
+          <h1 class="page-title">✍️ Writing</h1>
+          <p class="page-subtitle">Practice writing with guided prompts. Drafts are saved automatically.</p>
+        </div>
+        <div class="filter-tabs">
+          <button class="writing-level-btn filter-tab active" data-level="A1" onclick="setWritingLevel('A1')">A1</button>
+          <button class="writing-level-btn filter-tab" data-level="A2" onclick="setWritingLevel('A2')">A2</button>
+          <button class="writing-level-btn filter-tab" data-level="B1" onclick="setWritingLevel('B1')">B1</button>
+          <button class="writing-level-btn filter-tab" data-level="B2" onclick="setWritingLevel('B2')">B2</button>
+          <button class="writing-level-btn filter-tab" data-level="C1" onclick="setWritingLevel('C1')">C1</button>
+          <button class="writing-level-btn filter-tab" data-level="C2" onclick="setWritingLevel('C2')">C2</button>
+        </div>
+        <div class="content-list" id="writing-prompts-grid"></div>
+      </div>
+      <div id="writing-editor-area" class="hidden">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="renderWriting()">← Back</button>
+          <h2 id="writing-prompt-title" style="font-size:18px;font-weight:700;"></h2>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;" id="writing-layout">
+          <div>
+            <div class="card-glass mb-16" style="padding:18px 20px;border-left:3px solid var(--primary);">
+              <div style="font-size:11px;font-weight:700;color:var(--primary-light);letter-spacing:1px;margin-bottom:6px;">📝 PROMPT</div>
+              <div id="writing-prompt-text" style="font-size:15px;line-height:1.7;"></div>
+              <div style="margin-top:10px;font-size:12px;color:var(--text-dim);">Target: <strong id="writing-min-words">50</strong>–<strong id="writing-max-words">150</strong> words</div>
+            </div>
+            <div class="writing-editor">
+              <div class="editor-toolbar">
+                <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Your Essay</span>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('writing-textarea').value='';updateWordCount()">Clear</button>
+              </div>
+              <textarea id="writing-textarea" class="editor-textarea" placeholder="Start writing here..." oninput="updateWordCount()"></textarea>
+              <div class="editor-footer">
+                <div class="word-count-display">Words: <span class="count low" id="word-count-num">0</span></div>
+                <button class="btn btn-success" id="writing-save-btn" onclick="saveWriting()" disabled>💾 Save</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="card">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;">💡 Tips</div>
+              <ul id="writing-tips" style="color:var(--text-muted);font-size:13px;padding-left:16px;line-height:2;"></ul>
+            </div>
+            <div class="card">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📚 Useful Phrases</div>
+              <div style="font-size:12px;color:var(--text-muted);line-height:2.2;">
+                <div>• In my opinion...</div><div>• Furthermore...</div><div>• However...</div>
+                <div>• In conclusion...</div><div>• For example...</div><div>• On the other hand...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== LISTENING ===== -->
+    <div id="page-listening" class="hidden">
+      <div id="listening-list">
+        <div class="page-header">
+          <h1 class="page-title">🎧 Listening</h1>
+          <p class="page-subtitle">Listen carefully then answer comprehension questions. Adjust speed as needed.</p>
+        </div>
+        <div class="filter-tabs" id="listening-filter-tabs">
+          <button class="listening-level-btn filter-tab active" data-level="all" onclick="setListeningLevel('all')">Tất cả (36 bài)</button>
+          <button class="listening-level-btn filter-tab" data-level="A1" onclick="setListeningLevel('A1')">A1</button>
+          <button class="listening-level-btn filter-tab" data-level="A2" onclick="setListeningLevel('A2')">A2</button>
+          <button class="listening-level-btn filter-tab" data-level="B1" onclick="setListeningLevel('B1')">B1</button>
+          <button class="listening-level-btn filter-tab" data-level="B2" onclick="setListeningLevel('B2')">B2</button>
+          <button class="listening-level-btn filter-tab" data-level="C1" onclick="setListeningLevel('C1')">C1</button>
+          <button class="listening-level-btn filter-tab" data-level="C2" onclick="setListeningLevel('C2')">C2</button>
+        </div>
+        <div class="content-list" id="listening-cards"></div>
+      </div>
+      <div id="listening-exercise" class="hidden">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="window.speechSynthesis.cancel();renderListening()">← Back</button>
+          <span class="level-badge" id="listening-level-badge">A1</span>
+          <h2 id="listening-title" style="font-size:18px;font-weight:700;"></h2>
+        </div>
+        <div class="audio-player">
+          <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">🎙️ Listen before answering questions</div>
+          <div class="audio-visualizer" id="audio-visualizer">
+            <div class="audio-bar"></div><div class="audio-bar"></div><div class="audio-bar"></div>
+            <div class="audio-bar"></div><div class="audio-bar"></div><div class="audio-bar"></div>
+            <div class="audio-bar"></div><div class="audio-bar"></div><div class="audio-bar"></div>
+            <div class="audio-bar"></div><div class="audio-bar"></div><div class="audio-bar"></div>
+          </div>
+          <button class="btn btn-primary mb-16" id="play-btn" onclick="togglePlay()">▶️ Play Audio</button>
+          <div class="speed-controls">
+            <button class="speed-btn" data-speed="0.6" onclick="setSpeed(0.6)">0.6×</button>
+            <button class="speed-btn" data-speed="0.8" onclick="setSpeed(0.8)">0.8×</button>
+            <button class="speed-btn active" data-speed="1.0" onclick="setSpeed(1.0)">1.0×</button>
+            <button class="speed-btn" data-speed="1.25" onclick="setSpeed(1.25)">1.25×</button>
+            <button class="speed-btn" data-speed="1.5" onclick="setSpeed(1.5)">1.5×</button>
+          </div>
+        </div>
+        
+        <!-- Key Vocabulary & Academic Terms -->
+        <div id="listening-vocab-box" class="card mb-16 hidden" style="padding:14px 18px;border-left:3px solid var(--secondary);background:var(--bg-3);">
+          <div style="font-size:11px;font-weight:700;color:var(--secondary-light);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">💡 Key Vocabulary & Academic Terms</div>
+          <div id="listening-key-vocab-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:20px;">
+          <button class="btn btn-outline btn-sm" id="transcript-btn" onclick="toggleTranscript()">📜 Show Transcript</button>
+        </div>
+        <div id="listening-transcript" class="reading-passage hidden" style="font-size:14px;margin-bottom:20px;line-height:1.7;"></div>
+        <span id="listening-transcript-text" class="hidden"></span>
+        <div class="quiz-container">
+          <div id="listening-q-area">
+            <div class="quiz-progress">
+              <div class="quiz-progress-bar-track"><div class="quiz-progress-bar-fill" id="listening-q-progress" style="width:0%"></div></div>
+              <span class="quiz-counter" id="listening-q-counter">Q1/3</span>
+            </div>
+            <div class="question-card">
+              <p class="question-text" id="listening-question-text"></p>
+              <div class="options-grid" id="listening-options"></div>
+              <div id="listening-explanation" class="hidden"></div>
+            </div>
+            <div style="text-align:right;margin-top:16px;">
+              <button class="btn btn-primary hidden" id="listening-next-btn" onclick="listeningNext()">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHADOWING ===== -->
+    <div id="page-shadowing" class="hidden">
+      <div id="shadowing-list">
+        <div class="page-header">
+          <h1 class="page-title">🎙️ Shadowing</h1>
+          <p class="page-subtitle">Listen to each sentence, then record yourself repeating it. Great for pronunciation and fluency!</p>
+        </div>
+        <div class="card-glass mb-16" style="padding:14px 18px;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">💡</span>
+          <span style="font-size:13px;color:var(--text-muted);">Tip: Listen 2-3 times first, then try to repeat the whole sentence naturally. <strong style="color:white;">Chrome/Edge required for recording.</strong></span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+          <label style="font-size:13px;font-weight:600;color:var(--text-muted);">Level:</label>
+          <select id="shadowing-level-filter" onchange="renderShadowing()" style="padding:8px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none;">
+            <option value="all">All Levels</option>
+            <option value="A1">A1</option><option value="A2">A2</option>
+            <option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option><option value="C2">C2</option>
+          </select>
+        </div>
+        <div class="content-list" id="shadowing-cards"></div>
+      </div>
+
+      <div id="shadowing-exercise" class="hidden">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="window.speechSynthesis.cancel();renderShadowing()">← Back</button>
+          <span class="level-badge" id="shadowing-level-badge">A1</span>
+          <h2 id="shadowing-title" style="font-size:18px;font-weight:700;"></h2>
+        </div>
+
+        <div class="quiz-container">
+          <div class="quiz-progress">
+            <div class="quiz-progress-bar-track"><div class="quiz-progress-bar-fill" id="shadow-progress" style="width:0%"></div></div>
+            <span class="quiz-counter" id="shadow-counter">1/5</span>
+          </div>
+
+          <div id="shadow-exercise-area">
+            <!-- Current segment -->
+            <div style="text-align:center;padding:24px;background:linear-gradient(135deg,rgba(124,58,237,0.08),rgba(6,182,212,0.04));border:1px solid rgba(124,58,237,0.2);border-radius:var(--radius-lg);margin-bottom:20px;">
+              <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--text-dim);margin-bottom:12px;">LISTEN & REPEAT</div>
+              <div id="shadow-text" style="font-size:22px;font-weight:700;line-height:1.5;margin-bottom:10px;font-family:'Outfit',sans-serif;"></div>
+              <div id="shadow-translation" style="font-size:14px;color:var(--text-muted);"></div>
+            </div>
+
+            <!-- Controls -->
+            <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" onclick="shadowListen()">🔊 Listen</button>
+              <button class="btn btn-danger" id="shadow-record-btn" onclick="shadowRecord()">🎤 Record</button>
+              <button class="btn btn-primary hidden" id="shadow-next-btn" onclick="shadowNext()">Next →</button>
+            </div>
+
+            <!-- Transcript of what user said -->
+            <div id="shadow-transcript" class="transcript-display mb-16" style="font-size:13px;">Your speech will appear here...</div>
+
+            <!-- Score result -->
+            <div id="shadow-result" style="font-size:15px;line-height:2;padding:16px;background:var(--bg-3);border-radius:var(--radius);min-height:60px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SPEAKING ===== -->
+    <div id="page-speaking" class="hidden">
+      <div class="page-header">
+        <h1 class="page-title">🗣️ Speaking</h1>
+        <p class="page-subtitle">Practice pronunciation. Record yourself and see how accurately you speak.</p>
+      </div>
+      <div class="card-glass mb-16" style="padding:12px 18px;display:flex;align-items:center;gap:10px;">
+        <span>⚠️</span>
+        <span style="font-size:13px;color:var(--text-muted);">Voice recognition requires <strong>Chrome or Edge</strong>. Allow microphone when prompted.</span>
+      </div>
+      <div class="filter-tabs">
+        <button class="speaking-level-btn filter-tab active" data-level="A1" onclick="setSpeakingLevel('A1')">A1</button>
+        <button class="speaking-level-btn filter-tab" data-level="A2" onclick="setSpeakingLevel('A2')">A2</button>
+        <button class="speaking-level-btn filter-tab" data-level="B1" onclick="setSpeakingLevel('B1')">B1</button>
+        <button class="speaking-level-btn filter-tab" data-level="B2" onclick="setSpeakingLevel('B2')">B2</button>
+        <button class="speaking-level-btn filter-tab" data-level="C1" onclick="setSpeakingLevel('C1')">C1</button>
+        <button class="speaking-level-btn filter-tab" data-level="C2" onclick="setSpeakingLevel('C2')">C2</button>
+      </div>
+      <div class="quiz-container">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <span class="content-meta-tag" id="speaking-topic">Introduction</span>
+          <span style="font-size:13px;color:var(--text-muted);" id="speaking-counter">1/8</span>
+        </div>
+        <div class="speaking-sentence" id="speaking-sentence">My name is John and I am from Vietnam.</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:24px;margin:24px 0;">
+          <button class="btn btn-secondary" onclick="speakingNav(-1)" style="border-radius:50%;width:42px;height:42px;padding:0;font-size:18px;">←</button>
+          <div style="text-align:center;">
+            <button class="record-btn" id="record-btn" onclick="toggleRecording()">🎤</button>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:8px;" id="record-label">Tap to speak</div>
+          </div>
+          <button class="btn btn-secondary" onclick="speakingNav(1)" style="border-radius:50%;width:42px;height:42px;padding:0;font-size:18px;">→</button>
+        </div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" id="speaking-listen-btn">🔊 Listen example</button>
+          <button class="btn btn-secondary btn-sm" onclick="renderSpeakingCard()">🔄 Reset</button>
+        </div>
+        <div id="speaking-score-display" class="hidden card" style="text-align:center;padding:20px;margin-bottom:12px;">
+          <div style="font-family:'Outfit',sans-serif;font-size:48px;font-weight:900;background:linear-gradient(135deg,#F59E0B,#EF4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="speaking-accuracy">0%</div>
+          <div style="color:var(--text-muted);font-size:13px;">Accuracy Score</div>
+        </div>
+        <div id="speaking-transcript-display" class="transcript-display">Your speech will appear here...</div>
+      </div>
+    </div>
+
+    <!-- ===== VOCABULARY ===== -->
+    <div id="page-vocabulary" class="hidden">
+      <div class="page-header">
+        <h1 class="page-title">📝 Vocabulary</h1>
+        <p class="page-subtitle">Build your vocabulary with flashcards, quizzes, and matching games.</p>
+      </div>
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:20px;">
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value" id="vocab-stat-mastered">0</div><div class="stat-label">Mastered</div></div>
+        <div class="stat-card"><div class="stat-icon">🔄</div><div class="stat-value" id="vocab-stat-review" style="background:linear-gradient(135deg,#F59E0B,#EF4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</div><div class="stat-label">Reviewing</div></div>
+      </div>
+      <div class="filter-tabs">
+        <button class="vocab-level-btn filter-tab active" data-level="A1" onclick="setVocabLevel('A1')">A1</button>
+        <button class="vocab-level-btn filter-tab" data-level="A2" onclick="setVocabLevel('A2')">A2</button>
+        <button class="vocab-level-btn filter-tab" data-level="B1" onclick="setVocabLevel('B1')">B1</button>
+        <button class="vocab-level-btn filter-tab" data-level="B2" onclick="setVocabLevel('B2')">B2</button>
+        <button class="vocab-level-btn filter-tab" data-level="C1" onclick="setVocabLevel('C1')">C1</button>
+        <button class="vocab-level-btn filter-tab" data-level="C2" onclick="setVocabLevel('C2')">C2</button>
+      </div>
+      <div class="filter-tabs" style="overflow-x:auto;padding-bottom:4px;">
+        <button class="vocab-mode-btn filter-tab active" data-mode="flashcard" onclick="setVocabMode('flashcard')">🃏 Flashcards</button>
+        <button class="vocab-mode-btn filter-tab" data-mode="sentence-card" onclick="setVocabMode('sentence-card')">💬 Thẻ câu (Sentence Cards)</button>
+        <button class="vocab-mode-btn filter-tab" data-mode="sentence-builder" onclick="setVocabMode('sentence-builder')">🧩 Ghép câu (Sentence Builder)</button>
+        <button class="vocab-mode-btn filter-tab" data-mode="quiz" onclick="setVocabMode('quiz')">🧠 Quiz (Trắc nghiệm)</button>
+        <button class="vocab-mode-btn filter-tab" data-mode="matching" onclick="setVocabMode('matching')">🎯 Matching (Nối từ)</button>
+        <button class="vocab-mode-btn filter-tab" data-mode="bank" onclick="setVocabMode('bank')">📖 Word Bank (1,000 từ)</button>
+      </div>
+
+      <!-- Flashcard -->
+      <div id="flashcard-mode">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <span class="content-meta-tag" id="vocab-status">🆕 New</span>
+          <span style="font-size:13px;color:var(--text-muted);" id="vocab-card-counter">1 / 1000</span>
+        </div>
+        <div class="flashcard-wrapper" onclick="flipCard()">
+          <div class="flashcard-inner" id="flashcard-inner">
+            <div class="flashcard-face flashcard-front">
+              <div class="flashcard-word" id="vocab-front-word">hello</div>
+              <div class="flashcard-phonetic" id="vocab-front-phonetic">/həˈloʊ/</div>
+              <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();speakVocabCurrent()" style="margin-top:8px;">🔊 Listen</button>
+              <div class="flashcard-type" id="vocab-front-type" style="margin-top:10px;">exclamation</div>
+              <div style="font-size:12px;color:var(--text-dim);margin-top:14px;">👆 Tap to see meaning</div>
+            </div>
+            <div class="flashcard-face flashcard-back">
+              <div class="flashcard-hint">Meaning:</div>
+              <div class="flashcard-meaning" id="vocab-back-meaning">xin chào</div>
+              <div class="flashcard-example" id="vocab-back-example">"Hello, how are you?"</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="vocabNav(-1)">← Prev</button>
+          <button class="btn btn-secondary" onclick="flipCard()">🔄 Flip</button>
+          <button class="btn btn-secondary" onclick="vocabNav(1)">Next →</button>
+        </div>
+        
+        <!-- SM-2 Spaced Repetition Buttons -->
+        <div style="text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:8px;">Self-Rating (SM-2 Spaced Repetition)</div>
+        <div class="srs-buttons-grid">
+          <button class="srs-btn srs-btn-again" onclick="rateCardSM2Action(0)">
+            <span class="srs-rating-title">Again (0)</span>
+            <span class="srs-rating-interval">1 day</span>
+          </button>
+          <button class="srs-btn srs-btn-hard" onclick="rateCardSM2Action(1)">
+            <span class="srs-rating-title">Hard (1)</span>
+            <span class="srs-rating-interval">2 days</span>
+          </button>
+          <button class="srs-btn srs-btn-good" onclick="rateCardSM2Action(3)">
+            <span class="srs-rating-title">Good (3)</span>
+            <span class="srs-rating-interval">6 days</span>
+          </button>
+          <button class="srs-btn srs-btn-easy" onclick="rateCardSM2Action(5)">
+            <span class="srs-rating-title">Easy (5)</span>
+            <span class="srs-rating-interval">12+ days</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sentence Cards Mode (Học theo câu mẫu ngữ pháp) -->
+      <div id="sentence-card-mode" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="level-badge" id="sentence-level-badge">A1</span>
+            <span class="question-topic-tag" id="sentence-topic-badge">Sentence Pattern</span>
+          </div>
+          <span style="font-size:13px;color:var(--text-muted);" id="sentence-card-counter">1 / 20</span>
+        </div>
+
+        <div class="flashcard-wrapper" onclick="flipSentenceCard()">
+          <div class="flashcard-inner" id="sentence-card-inner">
+            <!-- Front Face -->
+            <div class="flashcard-face flashcard-front" style="padding:28px 24px;min-height:280px;display:flex;flex-direction:column;justify-content:center;text-align:center;">
+              <div style="font-size:11px;font-weight:700;color:var(--primary-light);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;" id="sentence-pattern-tag">Grammar Pattern</div>
+              <div class="sentence-en-text" id="sentence-front-text" style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;line-height:1.5;color:var(--text);margin-bottom:16px;">...</div>
+              
+              <div style="display:flex;gap:10px;justify-content:center;align-items:center;margin-top:6px;flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();speakSentenceCurrent(1.0)" style="border-radius:20px;padding:6px 14px;font-size:13px;">🔊 Nghe (1.0×)</button>
+                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();speakSentenceCurrent(0.8)" style="border-radius:20px;padding:6px 14px;font-size:13px;">🐢 Chậm (0.8×)</button>
+              </div>
+
+              <div style="font-size:12px;color:var(--text-dim);margin-top:18px;">👆 Chạm để xem nghĩa & phân tích cấu trúc ngữ pháp</div>
+            </div>
+
+            <!-- Back Face -->
+            <div class="flashcard-face flashcard-back" style="padding:24px;min-height:280px;text-align:left;display:flex;flex-direction:column;justify-content:center;">
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px;">Nghĩa tiếng Việt:</div>
+              <div id="sentence-back-meaning" style="font-size:18px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:14px;">...</div>
+              
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">Cấu trúc ngữ pháp trọng tâm:</div>
+              <div id="sentence-back-pattern" style="font-size:13px;font-weight:600;color:var(--primary-light);background:rgba(124,58,237,0.1);padding:6px 12px;border-radius:8px;margin-bottom:12px;border:1px solid rgba(124,58,237,0.2);">...</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">Phân tích thành phần câu:</div>
+              <div id="sentence-back-breakdown" class="sentence-breakdown-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:12px;margin:16px 0;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="sentenceNav(-1)">← Câu trước</button>
+          <button class="btn btn-secondary" onclick="flipSentenceCard()">🔄 Lật thẻ</button>
+          <button class="btn btn-secondary" onclick="sentenceNav(1)">Câu tiếp →</button>
+        </div>
+
+        <!-- SM-2 Repetition for Sentences -->
+        <div style="text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:8px;">Đánh giá độ nhớ câu (SM-2 Spaced Repetition)</div>
+        <div class="srs-buttons-grid">
+          <button class="srs-btn srs-btn-again" onclick="rateSentenceSM2Action(0)">
+            <span class="srs-rating-title">Chưa nhớ (0)</span>
+            <span class="srs-rating-interval">Học lại</span>
+          </button>
+          <button class="srs-btn srs-btn-hard" onclick="rateSentenceSM2Action(1)">
+            <span class="srs-rating-title">Khó (1)</span>
+            <span class="srs-rating-interval">1 ngày</span>
+          </button>
+          <button class="srs-btn srs-btn-good" onclick="rateSentenceSM2Action(3)">
+            <span class="srs-rating-title">Tốt (3)</span>
+            <span class="srs-rating-interval">3 ngày</span>
+          </button>
+          <button class="srs-btn srs-btn-easy" onclick="rateSentenceSM2Action(5)">
+            <span class="srs-rating-title">Dễ (5)</span>
+            <span class="srs-rating-interval">7+ ngày</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sentence Builder Mode (Ghép câu từ các mảnh từ) -->
+      <div id="sentence-builder-mode" class="hidden">
+        <div class="question-card" style="position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="level-badge" id="builder-level-badge">A1</span>
+              <span class="question-topic-tag" id="builder-topic-badge">Sentence Builder</span>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;font-size:13px;color:var(--text-muted);">
+              <span id="builder-score-display" style="font-weight:700;color:var(--primary-light);">Đúng: 0/0</span>
+              <span id="builder-counter-display" style="font-weight:600;">Câu 1 / 20</span>
+            </div>
+          </div>
+
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">Sắp xếp các từ thành câu tiếng Anh hoàn chỉnh theo nghĩa:</div>
+          <div id="builder-meaning-display" style="font-size:18px;font-weight:700;color:var(--text-main);margin-bottom:14px;padding:12px 16px;background:var(--bg-3);border-radius:10px;border-left:4px solid var(--primary);">...</div>
+
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">Câu bạn đang ghép (Nhấn vào từ đã chọn để gỡ ra):</div>
+          <div id="builder-target-slot" class="builder-target-slot">
+            <span class="builder-placeholder" id="builder-target-placeholder">Bấm vào các từ bên dưới để ghép câu...</span>
+          </div>
+
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin:16px 0 8px 0;">Ngân hàng từ vựng (Nhấn để ghép lên):</div>
+          <div id="builder-pool-slot" class="builder-pool-slot"></div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-secondary btn-sm" onclick="resetSentenceBuilderCurrent()">🔄 Làm lại</button>
+              <button class="btn btn-outline btn-sm" onclick="speakBuilderHint()">🔊 Nghe gợi ý</button>
+            </div>
+            <button class="btn btn-primary" id="builder-check-btn" onclick="checkSentenceBuilder()">✓ Kiểm tra câu</button>
+          </div>
+
+          <div id="builder-feedback" class="hidden" style="margin-top:16px;"></div>
+
+          <div style="display:flex;justify-content:center;margin-top:16px;">
+            <button class="btn btn-primary hidden" id="builder-next-btn" onclick="nextSentenceBuilder()">Câu tiếp theo →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quiz -->
+      <div id="quiz-mode" class="hidden">
+        <div class="question-card" style="text-align:center;position:relative;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="level-badge" id="quiz-level-badge">A1</span>
+              <span class="question-topic-tag" id="quiz-topic-badge">Vocabulary</span>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;font-size:13px;color:var(--text-muted);">
+              <span id="quiz-score-display" style="font-weight:700;color:var(--primary-light);">Điểm: 0/0</span>
+              <span id="quiz-counter-display" style="font-weight:600;">Câu 1 / 100</span>
+            </div>
+          </div>
+
+          <div style="font-size:14px;color:var(--text-muted);margin-bottom:10px;">Từ này có nghĩa tiếng Việt là gì?</div>
+
+          <!-- Prominent Word Display (FIX FOR MISSING QUESTION) -->
+          <div style="background:rgba(124,58,237,0.06);border:1.5px solid rgba(124,58,237,0.2);border-radius:var(--radius-lg);padding:24px 16px;margin-bottom:20px;">
+            <div id="quiz-word-display" style="font-family:'Outfit',sans-serif;font-size:40px;font-weight:800;color:var(--text-main);letter-spacing:-0.5px;">...</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+              <div id="quiz-word-phonetic" style="color:var(--primary-light);font-size:18px;font-weight:500;">/.../</div>
+              <span id="quiz-word-type" class="flashcard-type" style="margin-top:0;">word</span>
+              <button class="btn btn-secondary btn-sm" id="quiz-listen-btn" onclick="speakQuizCurrentWord()" style="padding:4px 12px;font-size:12px;">🔊 Listen</button>
+            </div>
+          </div>
+
+          <!-- Options Grid -->
+          <div class="options-grid" id="vocab-quiz-options"></div>
+
+          <!-- Detailed Feedback -->
+          <div id="vocab-quiz-feedback" style="margin-top:16px;"></div>
+
+          <!-- Next Action Button -->
+          <div style="display:flex;justify-content:center;margin-top:16px;">
+            <button class="btn btn-primary hidden" id="vocab-quiz-next-btn" onclick="vocabQuizNext()">Câu tiếp theo →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matching -->
+      <div id="matching-mode" class="hidden"></div>
+
+      <!-- Word Bank -->
+      <div id="bank-mode" class="hidden"></div>
+    </div>
+
+    <!-- ===== GRAMMAR ===== -->
+    <div id="page-grammar" class="hidden">
+      <div class="page-header">
+        <h1 class="page-title">🎓 Grammar</h1>
+        <p class="page-subtitle">Master English grammar with targeted exercises at every level.</p>
+      </div>
+      <div class="filter-tabs">
+        <button class="grammar-level-btn filter-tab active" data-level="A1" onclick="setGrammarLevel('A1')">A1</button>
+        <button class="grammar-level-btn filter-tab" data-level="A2" onclick="setGrammarLevel('A2')">A2</button>
+        <button class="grammar-level-btn filter-tab" data-level="B1" onclick="setGrammarLevel('B1')">B1</button>
+        <button class="grammar-level-btn filter-tab" data-level="B2" onclick="setGrammarLevel('B2')">B2</button>
+        <button class="grammar-level-btn filter-tab" data-level="C1" onclick="setGrammarLevel('C1')">C1</button>
+        <button class="grammar-level-btn filter-tab" data-level="C2" onclick="setGrammarLevel('C2')">C2</button>
+      </div>
+      <div class="quiz-container" id="grammar-question-area">
+        <div class="quiz-progress">
+          <div class="quiz-progress-bar-track"><div class="quiz-progress-bar-fill" id="grammar-progress-fill" style="width:0%"></div></div>
+          <span class="quiz-counter" id="grammar-counter">1/5</span>
+        </div>
+        <div class="question-card">
+          <div class="question-meta">
+            <span class="question-topic-tag" id="grammar-topic-tag">Present Simple</span>
+            <span class="level-badge" id="grammar-level-tag">A1</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;" id="grammar-instruction"></div>
+          <p class="question-text" id="grammar-question-text"></p>
+          <div class="options-grid" id="grammar-options"></div>
+          <div style="margin-top:14px;">
+            <input type="text" class="fill-input hidden" id="grammar-fill" placeholder="Type your answer...">
+          </div>
+          <div id="grammar-explanation" class="hidden mt-16"></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;flex-wrap:wrap;">
+          <button class="btn btn-primary hidden" id="grammar-submit-btn" onclick="submitGrammarFill()">✓ Check</button>
+          <button class="btn btn-primary hidden" id="grammar-next-btn" onclick="grammarNext()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PROGRESS ===== -->
+    <div id="page-progress" class="hidden">
+      <div class="page-header">
+        <h1 class="page-title">📊 My Progress</h1>
+        <p class="page-subtitle">Track your XP, level, badges, and skill scores.</p>
+      </div>
+      <div class="card mb-24" style="border-color:rgba(124,58,237,0.3);background:linear-gradient(135deg,rgba(124,58,237,0.05),transparent);">
+        <div style="display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;" class="prog-layout">
+          <div style="text-align:center;">
+            <div style="font-family:'Outfit',sans-serif;font-size:56px;font-weight:900;background:linear-gradient(135deg,#A78BFA,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="prog-level-value">A1</div>
+            <div style="font-size:11px;color:var(--text-dim);">Current Level</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:14px;font-weight:600;">XP Progress</span><span style="font-size:14px;font-weight:700;color:var(--primary-light);"><span id="prog-xp-value">0</span> XP</span></div>
+            <div style="height:12px;background:var(--bg-3);border-radius:6px;overflow:hidden;"><div id="prog-level-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:6px;transition:width 1s ease;"></div></div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:6px;">Next: <strong id="prog-next-level">A2</strong></div>
+          </div>
+          <div style="text-align:center;"><div id="prog-streak" style="font-size:18px;font-weight:700;">0 🔥</div><div style="font-size:11px;color:var(--text-dim);">Day streak</div></div>
+        </div>
+      </div>
+      <div class="section-title">📈 Weekly XP</div>
+      <div class="card mb-24"><div id="weekly-chart" style="display:flex;gap:8px;height:160px;align-items:flex-end;padding:8px 0;"></div></div>
+      <div class="section-title">🎯 Skill Scores</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px;" id="skill-score-grid"></div>
+      <div class="section-title">📋 Statistics</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px;">
+        <div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:6px;">📝</div><div style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--primary-light);" id="prog-vocab-mastered">0</div><div style="font-size:11px;color:var(--text-dim);">Words Mastered</div></div>
+        <div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:6px;">🔄</div><div style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--warning);" id="prog-vocab-reviewing">0</div><div style="font-size:11px;color:var(--text-dim);">Reviewing</div></div>
+        <div class="card" style="text-align:center;"><div style="font-size:24px;margin-bottom:6px;">✍️</div><div style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--success);" id="prog-writing-count">0</div><div style="font-size:11px;color:var(--text-dim);">Essays Written</div></div>
+      </div>
+      <div class="section-title">🏅 Achievements</div>
+      <div class="badges-grid" id="badges-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<nav class="mobile-bottom-nav">
+  <div class="mobile-nav-items">
+    <button class="mobile-nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><span class="mn-icon">🏠</span>Home</button>
+    <button class="mobile-nav-item" data-page="roadmap" onclick="navigate('roadmap')"><span class="mn-icon">🗺️</span>Map</button>
+    <button class="mobile-nav-item" data-page="ai" onclick="navigate('ai')"><span class="mn-icon">🤖</span>AI</button>
+    <button class="mobile-nav-item" data-page="reader" onclick="navigate('reader')"><span class="mn-icon">📖</span>Reader</button>
+    <button class="mobile-nav-item" data-page="vocabulary" onclick="navigate('vocabulary')"><span class="mn-icon">📝</span>Vocab</button>
+  </div>
+</nav>
+
+<!-- Scripts - ORDER MATTERS -->
+<script src="data/vocabulary.js"></script>
+<script src="data/sentences.js"></script>
+<script src="data/grammar.js"></script>
+<script src="data/reading.js"></script>
+<script src="data/listening.js"></script>
+<script src="data/content.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/roadmap.js"></script>
+<script src="js/ai-partner.js"></script>
+<script src="js/smart-reader.js"></script>
+<script src="js/app.js"></script>
+
+<style>
+@media (max-width: 900px) {
+  #writing-layout { grid-template-columns: 1fr !important; }
+  .prog-layout { grid-template-columns: auto 1fr !important; }
+  .prog-layout > :last-child { grid-column: 1/-1; text-align:center; }
+}
+</style>
+</body>
+</html>
