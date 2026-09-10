@@ -1950,20 +1950,7 @@ function renderProgress() {
   }
 }
 
-// ============================================================
-// SETUP & INIT
-// ============================================================
-function setupName() {
-  const input = document.getElementById('setup-name-input');
-  const name = input?.value.trim();
-  if (!name) { showToast('Please enter your name!', 'warning', '⚠️'); return; }
-  const profile = getProfile();
-  profile.name = name;
-  saveProfile(profile);
-  document.getElementById('setup-modal')?.classList.add('hidden');
-  document.getElementById('setup-modal').style.display = 'none';
-  initApp();
-}
+// setupName() removed - app now requires login
 
 function initApp() {
   initTheme();
@@ -1981,17 +1968,14 @@ function initApp() {
   navigate(PAGES.includes(hash) ? hash : 'dashboard');
 }
 
+let _appInitialized = false;
+
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   if (window.Auth && typeof window.Auth.initAuth === 'function') {
     window.Auth.initAuth();
   }
-  const profile = getProfile();
-  if (!profile.name || profile.name === 'Learner') {
-    const modal = document.getElementById('setup-modal');
-    if (modal) { modal.classList.remove('hidden'); modal.style.display='flex'; }
-    document.getElementById('setup-name-input')?.focus();
-  } else {
-    initApp();
-  }
+  // Always show login modal if not authenticated
+  // Auth.initAuth will call updateUIForUser -> initApp when session is found
+  // If no session, updateUIForGuest will show the auth modal
 });

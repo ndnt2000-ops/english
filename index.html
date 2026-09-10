@@ -28,18 +28,7 @@
 <button class="mobile-menu-btn" onclick="openMobileSidebar()">☰</button>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
 
-<!-- Setup Modal -->
-<div id="setup-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div class="card" style="max-width:400px;width:100%;text-align:center;padding:48px 36px;border-color:rgba(124,58,237,0.3);border-radius:28px;">
-    <div style="font-size:64px;margin-bottom:16px;">🎓</div>
-    <h1 style="font-family:'Outfit',sans-serif;font-size:26px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#A78BFA,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Welcome to EnglishMaster</h1>
-    <p style="color:var(--text-muted);margin-bottom:28px;font-size:14px;line-height:1.6;">Learn English from A1 to C2 — Reading, Writing, Listening, Speaking, Shadowing & more!</p>
-    <input id="setup-name-input" type="text" placeholder="Enter your name..." maxlength="30"
-      style="width:100%;padding:14px 18px;background:var(--bg-3);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;outline:none;margin-bottom:16px;transition:border-color 0.2s;"
-      onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
-    <button class="btn btn-primary w-full btn-lg" onclick="setupName()">🚀 Start Learning!</button>
-  </div>
-</div>
+<!-- Setup Modal removed: auth modal is shown on first visit instead -->
 
 <!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
@@ -825,7 +814,7 @@
 <!-- Auth Modal (Email & Google Login) -->
 <div id="auth-modal" class="hidden auth-modal-overlay">
   <div class="card auth-card">
-    <div class="auth-modal-close" onclick="closeAuthModal()">✕</div>
+    <div class="auth-modal-close" id="auth-modal-close-btn" onclick="closeAuthModal()" style="display:none;">✕</div>
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:42px;margin-bottom:8px;">🎓</div>
       <h2 style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px;">Tài khoản EnglishMaster</h2>

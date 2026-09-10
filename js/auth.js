@@ -135,14 +135,30 @@ const Auth = {
       }
     }
 
+    // Show close button on auth modal now that user is logged in
+    const closeBtn = document.getElementById('auth-modal-close-btn');
+    if (closeBtn) closeBtn.style.display = '';
+
     // Close auth modal if open
     closeAuthModal();
+
+    // Initialize app on first login
+    if (typeof _appInitialized !== 'undefined' && !_appInitialized) {
+      _appInitialized = true;
+      if (typeof initApp === 'function') initApp();
+    }
   },
 
   updateUIForGuest() {
     this.user = null;
     this.profile = null;
     this.isAdmin = false;
+
+    // Clear stale localStorage so another user's data doesn't show
+    try {
+      const keysToReset = ['em_profile', 'em_skill_progress', 'em_srs_data', 'em_quizScores', 'em_activityLog', 'em_hearts'];
+      keysToReset.forEach(k => localStorage.removeItem(k));
+    } catch(e) {}
 
     const authBox = document.getElementById('sidebar-auth-box');
     if (authBox) {
@@ -158,6 +174,11 @@ const Auth = {
       adminNavBtn.classList.add('hidden');
       adminNavBtn.style.display = 'none';
     }
+
+    // Show auth modal - required to use the app
+    const closeBtn = document.getElementById('auth-modal-close-btn');
+    if (closeBtn) closeBtn.style.display = 'none';
+    openAuthModal('signin');
   },
 
   // Auth Operations
