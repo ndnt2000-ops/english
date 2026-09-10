@@ -34,7 +34,7 @@ function showXPPopup(amount) {
 }
 
 // ---- Navigation ----
-const PAGES = ['dashboard','roadmap','ai','reader','reading','writing','listening','speaking','vocabulary','grammar','shadowing','progress'];
+const PAGES = ['dashboard','roadmap','ai','reader','reading','writing','listening','speaking','vocabulary','grammar','shadowing','progress','admin'];
 
 function navigate(page) {
   PAGES.forEach(p => document.getElementById(`page-${p}`)?.classList.add('hidden'));
@@ -59,7 +59,8 @@ function initPage(page) {
     speaking: renderSpeaking, 
     writing: renderWriting, 
     shadowing: renderShadowing, 
-    progress: renderProgress 
+    progress: renderProgress,
+    admin: () => (typeof renderAdminDashboard === 'function' ? renderAdminDashboard() : null)
   };
   map[page]?.();
 }
@@ -1982,6 +1983,9 @@ function initApp() {
 
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  if (window.Auth && typeof window.Auth.initAuth === 'function') {
+    window.Auth.initAuth();
+  }
   const profile = getProfile();
   if (!profile.name || profile.name === 'Learner') {
     const modal = document.getElementById('setup-modal');

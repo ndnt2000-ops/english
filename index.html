@@ -6,6 +6,8 @@
   <title>EnglishMaster – Learn English A1 to C2</title>
   <meta name="description" content="Master English from A1 to C2 with 4 skills, shadowing, vocabulary, grammar, and more.">
   <link rel="stylesheet" href="css/style.css">
+  <!-- Supabase JS Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // Automatically purge any stale Service Workers or PWA caches from other projects on localhost
     if ('serviceWorker' in navigator) {
@@ -60,6 +62,10 @@
       </div>
     </div>
 
+    <!-- Auth Box & Cloud Sync Status -->
+    <div id="sidebar-auth-box"></div>
+    <div id="cloud-sync-status" class="cloud-sync-badge synced" style="display:none;"></div>
+
     <!-- Hearts -->
     <div class="sidebar-hearts">
       <span style="font-size:12px;font-weight:600;color:var(--text-dim);">LIVES:</span>
@@ -88,7 +94,18 @@
       <button class="nav-item" data-page="writing" onclick="navigate('writing')"><span class="nav-icon">✍️</span> Writing</button>
       <button class="nav-item" data-page="listening" onclick="navigate('listening')"><span class="nav-icon">🎧</span> Listening</button>
       <button class="nav-item" data-page="speaking" onclick="navigate('speaking')"><span class="nav-icon">🗣️</span> Speaking</button>
+
+      <!-- Admin Menu Item (Visible to Admins) -->
+      <button class="nav-item hidden" id="nav-item-admin" data-page="admin" onclick="navigate('admin')" style="display:none;margin-top:10px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.06);">
+        <span class="nav-icon">👑</span> Admin Dashboard
+      </button>
     </nav>
+
+    <!-- Supabase Config Trigger -->
+    <div class="sidebar-config-bar" onclick="openSupabaseSettingsModal()" title="Cấu hình Supabase API">
+      <span>⚡ Supabase API</span>
+      <span style="font-size:12px;">⚙️</span>
+    </div>
 
     <!-- Theme Toggle -->
     <div class="theme-toggle-bar" onclick="toggleTheme()">
@@ -781,7 +798,122 @@
       <div class="badges-grid" id="badges-grid"></div>
     </div>
 
+    <!-- ===== ADMIN DASHBOARD ===== -->
+    <div id="page-admin" class="hidden">
+      <div class="page-header">
+        <div class="flex-between flex-wrap gap-16">
+          <div>
+            <h1 class="page-title">👑 Admin Dashboard</h1>
+            <p class="page-subtitle">Quản trị viên theo dõi toàn bộ học viên và kết quả học tập</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-secondary btn-sm" onclick="openSupabaseSettingsModal()">⚙️ Supabase API</button>
+            <button class="btn btn-primary btn-sm" onclick="Admin.fetchLearners()">🔄 Làm mới</button>
+          </div>
+        </div>
+      </div>
+      <div id="admin-content-area"></div>
+    </div>
+
   </main>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODALS -->
+<!-- ============================================================ -->
+
+<!-- Auth Modal (Email & Google Login) -->
+<div id="auth-modal" class="hidden auth-modal-overlay">
+  <div class="card auth-card">
+    <div class="auth-modal-close" onclick="closeAuthModal()">✕</div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:42px;margin-bottom:8px;">🎓</div>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px;">Tài khoản EnglishMaster</h2>
+      <p style="font-size:13px;color:var(--text-muted);">Đăng nhập để đồng bộ tiến độ học, điểm quiz & từ vựng</p>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="auth-tab-bar">
+      <button class="auth-tab active" id="auth-tab-signin" onclick="switchAuthTab('signin')">Đăng nhập</button>
+      <button class="auth-tab" id="auth-tab-signup" onclick="switchAuthTab('signup')">Đăng ký</button>
+    </div>
+
+    <!-- Error message -->
+    <div id="auth-error-msg" class="auth-error hidden"></div>
+
+    <!-- Form -->
+    <form onsubmit="handleAuthFormSubmit(event)" style="display:flex;flex-direction:column;gap:14px;">
+      <div id="auth-name-group" style="display:none;">
+        <label class="form-label">Họ và tên học viên</label>
+        <input type="text" id="auth-name-input" class="form-input" placeholder="Ví dụ: Nguyễn Văn A" autocomplete="name">
+      </div>
+
+      <div>
+        <label class="form-label">Email</label>
+        <input type="email" id="auth-email-input" class="form-input" placeholder="student@example.com" required autocomplete="email">
+      </div>
+
+      <div>
+        <label class="form-label">Mật khẩu</label>
+        <input type="password" id="auth-password-input" class="form-input" placeholder="Tối thiểu 6 ký tự" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" id="auth-submit-btn" class="btn btn-primary w-full btn-lg" style="margin-top:6px;">
+        🚀 Đăng nhập
+      </button>
+    </form>
+
+    <div class="auth-divider">
+      <span>HOẶC</span>
+    </div>
+
+    <!-- Google Login -->
+    <button class="btn-google-login" onclick="Auth.signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.347 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      <span>Tiếp tục với Google</span>
+    </button>
+
+    <div id="auth-switch-hint" style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted);"></div>
+  </div>
+</div>
+
+<!-- Supabase Settings Modal -->
+<div id="supabase-settings-modal" class="hidden auth-modal-overlay">
+  <div class="card auth-card" style="max-width:500px;">
+    <div class="auth-modal-close" onclick="closeSupabaseSettingsModal()">✕</div>
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:38px;margin-bottom:6px;">⚡</div>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:800;color:var(--text);">Cấu hình Supabase API</h2>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.5;">
+        Lấy <strong>Project URL</strong> và <strong>Anon Key</strong> tại mục <code>Project Settings → API</code> trên Supabase Dashboard.
+      </p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label class="form-label">Supabase Project URL</label>
+        <input type="text" id="supabase-url-input" class="form-input" placeholder="https://xyzcompany.supabase.co">
+      </div>
+      <div>
+        <label class="form-label">Supabase Anon Key (Public)</label>
+        <textarea id="supabase-key-input" class="form-input" rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..."></textarea>
+      </div>
+      <button class="btn btn-primary w-full btn-lg" onclick="saveSupabaseSettingsFromUI()">
+        💾 Lưu & Kết nối Supabase
+      </button>
+      <div style="font-size:12px;color:var(--text-dim);text-align:center;">
+        * Nhớ chạy tệp <code>supabase_schema.sql</code> trong Supabase SQL Editor trước khi đăng nhập!
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Learner Detail Breakdown Modal -->
+<div id="learner-detail-modal" class="hidden auth-modal-overlay">
+  <div class="card auth-card" style="max-width:780px;width:95%;max-height:88vh;overflow-y:auto;padding:28px;">
+    <div class="auth-modal-close" onclick="Admin.closeLearnerDetail()">✕</div>
+    <div id="learner-detail-content"></div>
+  </div>
 </div>
 
 <!-- Mobile Bottom Nav -->
@@ -803,6 +935,10 @@
 <script src="data/listening.js"></script>
 <script src="data/content.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/sync.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/admin.js"></script>
 <script src="js/roadmap.js"></script>
 <script src="js/ai-partner.js"></script>
 <script src="js/smart-reader.js"></script>

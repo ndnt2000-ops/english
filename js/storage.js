@@ -23,7 +23,12 @@ function getProfile() {
     streak: 0, lastStudyDate: null, badges: [], joinDate: new Date().toISOString(),
   });
 }
-function saveProfile(p) { Storage.set('profile', p); }
+function saveProfile(p) {
+  Storage.set('profile', p);
+  if (window.Sync && typeof window.Sync.queueSync === 'function') {
+    window.Sync.queueSync();
+  }
+}
 
 const LEVEL_THRESHOLDS = { A1: 0, A2: 500, B1: 1200, B2: 2500, C1: 4500, C2: 7000 };
 const LEVELS = ['A1','A2','B1','B2','C1','C2'];
@@ -157,7 +162,12 @@ function getSkillProgress() {
     grammar: { completed: [], scores: [], totalScore: 0, attempts: 0 },
   });
 }
-function saveSkillProgress(sp) { Storage.set('skillProgress', sp); }
+function saveSkillProgress(sp) {
+  Storage.set('skillProgress', sp);
+  if (window.Sync && typeof window.Sync.queueSync === 'function') {
+    window.Sync.queueSync();
+  }
+}
 
 function getSkillScore(skill) {
   const sp = getSkillProgress();
@@ -166,13 +176,18 @@ function getSkillScore(skill) {
   return Math.round((s.totalScore / s.attempts));
 }
 
-function recordScore(skill, score, maxScore) {
+function recordScore(skill, score, maxScore, title = null) {
   const sp = getSkillProgress();
   if (!sp[skill]) sp[skill] = { totalScore: 0, attempts: 0, completed: [] };
   sp[skill].totalScore = (sp[skill].totalScore || 0) + score;
   sp[skill].attempts = (sp[skill].attempts || 0) + maxScore;
   saveSkillProgress(sp);
   const xp = getXPWithCombo(Math.round((score / maxScore) * 20) + 5);
+
+  if (window.Sync && typeof window.Sync.recordQuizResult === 'function') {
+    window.Sync.recordQuizResult(skill, title || `${skill.toUpperCase()} Quiz`, score, maxScore);
+  }
+
   return addXP(xp);
 }
 
@@ -185,6 +200,9 @@ function getSRSData() {
 
 function saveSRSData(data) {
   Storage.set('srsData', data);
+  if (window.Sync && typeof window.Sync.queueSync === 'function') {
+    window.Sync.queueSync();
+  }
 }
 
 function getCardSM2(wordId) {
