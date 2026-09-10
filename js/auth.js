@@ -313,6 +313,18 @@ async function handleAuthFormSubmit(e) {
 function showAuthError(msg) {
   const el = document.getElementById('auth-error-msg');
   if (!el) return;
-  el.textContent = msg;
+  
+  let friendlyMsg = msg;
+  if (msg.includes('Email not confirmed')) {
+    friendlyMsg = `⚠️ Email chưa được xác thực! Vui lòng kiểm tra hộp thư (${document.getElementById('auth-email-input')?.value || 'email của bạn'}) hoặc tắt tính năng "Confirm email" trong Supabase Dashboard -> Authentication -> Providers -> Email.`;
+  } else if (msg.includes('Invalid login credentials')) {
+    friendlyMsg = '⚠️ Sai địa chỉ email hoặc mật khẩu. Vui lòng kiểm tra lại!';
+  } else if (msg.includes('User already registered')) {
+    friendlyMsg = '⚠️ Email này đã được đăng ký tài khoản rồi. Vui lòng chuyển sang tab Đăng nhập!';
+  } else if (msg.includes('Password should be at least 6 characters')) {
+    friendlyMsg = '⚠️ Mật khẩu phải có tối thiểu 6 ký tự!';
+  }
+
+  el.textContent = friendlyMsg;
   el.classList.remove('hidden');
 }
