@@ -2,8 +2,8 @@
 // ENGLISHMASTER - Supabase Configuration & Client Provider
 // ============================================================
 
-const SUPABASE_DEFAULT_URL = "";
-const SUPABASE_DEFAULT_ANON_KEY = "";
+const SUPABASE_DEFAULT_URL = "https://sncboidwnnhmjvsxxuth.supabase.co";
+const SUPABASE_DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuY2JvaWR3bm5obWp2c3h4dXRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMDQzOTEsImV4cCI6MjEwNDU4MDM5MX0.Nh1fm0l-nKRqq735BxzFCh_3Ad_CQ7eIQQTw-CXdF2s";
 
 const SupabaseConfig = {
   getUrl() {
