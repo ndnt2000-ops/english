@@ -591,8 +591,10 @@ function renderListeningQuestion() {
   const total = qs.length;
   const prog = document.getElementById('listening-q-progress');
   if (prog) prog.style.width = `${(listeningState.qIdx/total)*100}%`;
-  document.getElementById('listening-q-counter')?.textContent && (document.getElementById('listening-q-counter').textContent = `Q${listeningState.qIdx+1}/${total}`);
-  document.getElementById('listening-question-text')?.textContent && (document.getElementById('listening-question-text').textContent = q.question);
+  const counterEl = document.getElementById('listening-q-counter');
+  if (counterEl) counterEl.textContent = `Q${listeningState.qIdx+1}/${total}`;
+  const qTextEl = document.getElementById('listening-question-text');
+  if (qTextEl) qTextEl.textContent = q.question;
 
   const optContainer = document.getElementById('listening-options');
   if (optContainer) {
